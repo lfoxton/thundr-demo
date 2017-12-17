@@ -1,0 +1,8 @@
+.classpath
+.project
+thundr-demo.iml
+target
+.settings
+.idea
+.extract
+.DS_Store
