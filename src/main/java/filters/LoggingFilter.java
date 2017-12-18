@@ -12,6 +12,8 @@ import org.apache.commons.lang3.RandomStringUtils;
 import servlet.MultiReadHttpServletRequest;
 
 import java.io.IOException;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 
 public class LoggingFilter implements Filter {
 
@@ -21,6 +23,7 @@ public class LoggingFilter implements Filter {
 
             String trace = RandomStringUtils.randomAlphanumeric(16);
             req.putData("trace", trace);
+            req.putData("serverTime", System.currentTimeMillis());
 
             RequestDto requestDto = new RequestDto(
                 trace,
@@ -50,6 +53,7 @@ public class LoggingFilter implements Filter {
         ResponseDto responseDto = new ResponseDto(
             req.getData("trace"),
             resp.getStatusCode(),
+            System.currentTimeMillis() - (Long)req.getData("serverTime"),
             getJson(view)
         );
 
@@ -59,12 +63,13 @@ public class LoggingFilter implements Filter {
     }
 
     @Override
-    public <T> T exception(Exception e, Request req, Response resp) {
+    public <T> T exception(Exception exception, Request req, Response resp) {
 
         ResponseDto responseDto = new ResponseDto(
             req.getData("trace"),
             resp.getStatusCode(),
-            e
+            System.currentTimeMillis() - (Long)req.getData("serverTime"),
+            exception
         );
 
         System.out.println(responseDto);
@@ -75,6 +80,7 @@ public class LoggingFilter implements Filter {
     private static class RequestDto {
 
         private final String trace;
+        private final ZonedDateTime dateTime;
         private final HttpMethod httpMethod;
         private final ContentType contentType;
         private final String contextPath;
@@ -92,13 +98,16 @@ public class LoggingFilter implements Filter {
             this.userAgent = userAgent;
             this.contentLength = contentLength;
             this.json = json;
+            this.dateTime = ZonedDateTime.now(ZoneOffset.UTC);
         }
 
         @Override
         public String toString() {
 
             return "request: {" +
-                "httpMethod='" + httpMethod + '\'' +
+                "trace='" + trace + '\'' +
+                ", date='" + dateTime + '\'' +
+                ", httpMethod='" + httpMethod + '\'' +
                 ", contextPath='" + contextPath + '\'' +
                 ", traceToken='" + trace + '\'' +
                 ", contentType='" + contentType + '\'' +
@@ -136,23 +145,27 @@ public class LoggingFilter implements Filter {
     private static class ResponseDto {
 
         private final String trace;
+        private final ZonedDateTime dateTime;
+        private final long duration;
         private final StatusCode statusCode;
         private final Exception exception;
         private final String json;
 
-        public ResponseDto(String trace, StatusCode statusCode, Exception exception, String json) {
+        public ResponseDto(String trace, StatusCode statusCode, long duration, Exception exception, String json) {
             this.trace = trace;
             this.statusCode = statusCode;
+            this.duration = duration;
             this.exception = exception;
             this.json = json;
+            this.dateTime = ZonedDateTime.now(ZoneOffset.UTC);
         }
 
-        public ResponseDto(String trace, StatusCode statusCode, String json) {
-            this(trace, statusCode, null, json);
+        public ResponseDto(String trace, StatusCode statusCode, long duration, String json) {
+            this(trace, statusCode, duration, null, json);
         }
 
-        public ResponseDto(String trace, StatusCode statusCode, Exception exception) {
-            this(trace, statusCode, exception, null);
+        public ResponseDto(String trace, StatusCode statusCode, long duration, Exception exception) {
+            this(trace, statusCode, duration, exception, null);
         }
 
         @Override
@@ -161,7 +174,9 @@ public class LoggingFilter implements Filter {
             if (exception != null) {
                 return "response: {" +
                     "trace='" + trace + '\'' +
+                    ", date='" + dateTime + '\'' +
                     ", statusCode='" + statusCode + '\'' +
+                    ", duration='" + duration + "ms\'" +
                     ", exception='" + exception.getClass().getSimpleName() + '\'' +
                     ", message='" + exception.getMessage() + '\'' +
                     '}';
@@ -169,7 +184,9 @@ public class LoggingFilter implements Filter {
 
             return "response: {" +
                 "trace='" + trace + '\'' +
+                ", date='" + dateTime + '\'' +
                 ", statusCode='" + statusCode + '\'' +
+                ", duration='" + duration + "ms\'" +
                 ", json='" + json + '\'' +
                 '}';
         }

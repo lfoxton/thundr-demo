@@ -1,7 +1,7 @@
 package controllers;
 
 import com.threewks.thundr.view.json.JsonView;
-import requests.Greeting;
+import requests.Person;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +14,9 @@ public class GreetingController {
         return new JsonView(model);
     }
 
-    public JsonView namedGreeting(Greeting greeting) {
+    public JsonView namedGreeting(Person person) {
         Map<String, Object> model = new HashMap<>();
-        model.put("message", "Hello, " + greeting.getFirstName() + " " + greeting.getLastName() + "!") ;
+        model.put("message", "Hello, " + person.getFirstName() + " " + person.getLastName() + "!") ;
         return new JsonView(model);
     }
 }
