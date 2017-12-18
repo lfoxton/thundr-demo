@@ -29,21 +29,17 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>1.3.2</version>
-        </dependency>
-
     </dependencies>
 
     <build>
         <finalName>thundr-demo</finalName>
+
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
+
         <plugins>
 
             <!-- Set JDK Compiler Level -->
