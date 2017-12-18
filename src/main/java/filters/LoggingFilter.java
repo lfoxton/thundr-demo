@@ -4,8 +4,6 @@ import com.threewks.thundr.route.HttpMethod;
 import com.threewks.thundr.route.controller.Filter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import servlet.MultiReadHttpServletRequest;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -33,12 +31,6 @@ public class LoggingFilter implements Filter {
         } catch (IOException e) {
 
             e.printStackTrace();
-
-        } finally {
-
-            if (req instanceof MultiReadHttpServletRequest) {
-                ((MultiReadHttpServletRequest) req).resetInputStream();
-            }
 
         }
 
