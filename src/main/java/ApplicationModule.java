@@ -1,5 +1,3 @@
-import com.threewks.thundr.bind.BinderRegistry;
-import com.threewks.thundr.bind.json.GsonBinder;
 import com.threewks.thundr.injection.BaseModule;
 import com.threewks.thundr.injection.UpdatableInjectionContext;
 import com.threewks.thundr.module.DependencyRegistry;
@@ -15,15 +13,12 @@ public class ApplicationModule extends BaseModule {
 
         super.configure(injectionContext);
 
-        BinderRegistry registry = injectionContext.get(BinderRegistry.class);
-        registry.registerBinder(new GsonBinder());
-
         Router router = injectionContext.get(Router.class);
         router.get("/thundr-demo/", GreetingController.class, "greeting");
         router.post("/thundr-demo/greeting/", GreetingController.class, "namedGreeting");
 
         FilterRegistry filters = injectionContext.get(FilterRegistry.class);
-        filters.add("/**", new LoggingFilter());
+        filters.add(new LoggingFilter(), "/**");
     }
 
     @Override
