@@ -8,6 +8,7 @@ import controllers.GreetingController;
 import filters.LoggingFilter;
 
 public class ApplicationModule extends BaseModule {
+
     @Override
     public void configure(UpdatableInjectionContext injectionContext) {
 

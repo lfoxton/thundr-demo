@@ -6,15 +6,15 @@
         version="2.5">
 
     <filter>
-        <filter-name>RequestWrappingFilter</filter-name>
-        <filter-class>servlet.RequestWrappingServletFilter</filter-class>
+        <filter-name>WrappingServletFilter</filter-name>
+        <filter-class>servlet.WrappingServletFilter</filter-class>
         <init-param>
             <param-name>my-param</param-name>
             <param-value>my-param-value</param-value>
         </init-param>
     </filter>
     <filter-mapping>
-        <filter-name>RequestWrappingFilter</filter-name>
+        <filter-name>WrappingServletFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
