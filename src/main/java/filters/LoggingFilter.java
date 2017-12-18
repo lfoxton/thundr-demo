@@ -77,6 +77,29 @@ public class LoggingFilter implements Filter {
         return null;
     }
 
+    private String getJson(Request request) throws IOException {
+
+        if (request.getContentType() == ContentType.ApplicationJson) {
+
+            MultiReadHttpServletRequest multiReadRequest = request.getRawRequest(MultiReadHttpServletRequest.class);
+
+            if (multiReadRequest != null) {
+                return multiReadRequest.getRequestBody();
+            }
+        }
+
+        return "";
+    }
+
+    private String getJson(Object view) {
+
+        if (view instanceof JsonView) {
+            return new Gson().toJson(((JsonView)view).getOutput());
+        }
+
+        return "";
+    }
+
     private static class RequestDto {
 
         private final String trace;
@@ -117,29 +140,6 @@ public class LoggingFilter implements Filter {
                 ", json='" + json + '\'' +
                 '}';
         }
-    }
-
-    private String getJson(Request request) throws IOException {
-
-        if (request.getContentType() == ContentType.ApplicationJson) {
-
-            MultiReadHttpServletRequest multiReadRequest = request.getRawRequest(MultiReadHttpServletRequest.class);
-
-            if (multiReadRequest != null) {
-                return multiReadRequest.getRequestBody();
-            }
-        }
-
-        return "";
-    }
-
-    private String getJson(Object view) {
-
-        if (view instanceof JsonView) {
-            return new Gson().toJson(((JsonView)view).getOutput());
-        }
-
-        return "";
     }
 
     private static class ResponseDto {
