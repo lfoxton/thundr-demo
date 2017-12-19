@@ -4,16 +4,16 @@ A super-simple rest client example using Thundr, such as it is.
 
 Intent is to demonstrate the web container, and how requests can be logged to std out or offloaded to a SAAS for recording.
 
-## Libs
+## Libs / Plugins
 
 * Java8
-* Tomcat7
 * Thundr
+* Maven App Engine Plugin
 
 ## To Run
 
 * `mvn package`
-* `mvn tomcat:run`
+* `mvn appengine:devserver`
 
 ## To Test
 

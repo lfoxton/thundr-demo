@@ -3,6 +3,7 @@ package filters;
 import com.google.gson.Gson;
 import com.threewks.thundr.http.ContentType;
 import com.threewks.thundr.http.StatusCode;
+import com.threewks.thundr.logger.Logger;
 import com.threewks.thundr.request.Request;
 import com.threewks.thundr.request.Response;
 import com.threewks.thundr.route.HttpMethod;
@@ -16,6 +17,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 public class LoggingFilter implements Filter {
+
 
     @Override
     public <T> T before(Request req, Response resp) {
@@ -36,7 +38,7 @@ public class LoggingFilter implements Filter {
                 getJson(req)
             );
 
-            System.out.println(requestDto);
+            Logger.info(requestDto.toString());
 
         } catch (IOException e) {
 
@@ -57,7 +59,7 @@ public class LoggingFilter implements Filter {
             getJson(view)
         );
 
-        System.out.println(responseDto);
+        Logger.info(responseDto.toString());
 
         return null;
     }
@@ -72,7 +74,7 @@ public class LoggingFilter implements Filter {
             exception
         );
 
-        System.out.println(responseDto);
+        Logger.info(responseDto.toString());
 
         return null;
     }

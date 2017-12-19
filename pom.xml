@@ -8,6 +8,10 @@
     <name>thundr-demo</name>
     <url>http://maven.apache.org</url>
 
+    <properties>
+        <appengine.app.version>1</appengine.app.version>
+    </properties>
+
     <dependencies>
 
         <dependency>
@@ -19,6 +23,12 @@
         <dependency>
             <groupId>com.threewks.thundr</groupId>
             <artifactId>thundr-servlet-25</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.threewks.thundr</groupId>
+            <artifactId>thundr-gae</artifactId>
             <version>3.0.0</version>
         </dependency>
 
@@ -53,13 +63,15 @@
                 </configuration>
             </plugin>
 
-            <!-- For Maven Tomcat Plugin -->
+            <!-- For Google App Engine -->
             <plugin>
-                <groupId>org.apache.tomcat.maven</groupId>
-                <artifactId>tomcat7-maven-plugin</artifactId>
-                <version>2.2</version>
+                <groupId>com.google.appengine</groupId>
+                <artifactId>appengine-maven-plugin</artifactId>
+                <version>1.9.59</version>
                 <configuration>
-                    <path>/thundr-demo</path>
+                    <enableJarClasses>false</enableJarClasses>
+                    <port>8080</port>
+                    <address>0.0.0.0</address>
                 </configuration>
             </plugin>
 
