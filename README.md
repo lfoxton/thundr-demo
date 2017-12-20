@@ -21,7 +21,18 @@ Intent is to demonstrate the web container, and how requests can be logged to st
 
 `curl -v -XPOST -d '{ "firstName": "Joey Joe-Joe", "lastName": "Junior" }' -H 'content-type: application/json'  http://localhost:8080/thundr-demo/greeting/`
 
+# Deployment
+
+* Edit the version and the application id `src/main/resources/appengine-web.xml`
+  * Follow the steps from https://cloud.google.com/appengine/docs/standard/java/tools/uploadinganapp
+* Run the maven task
+
+`mvn appengine:update`
+
+Observe the result at `https://{version}-dot-${application}.appspot.com/`
+
+Example: `curl https://2-dot-firstproject-188709.appspot.com/thundr-demo/`
+
 ## To Do
 
-* Deploy in Google App Engine
 * Demonstrate an alternate to LoggerFilter posting to BigQuery instead of std out 
