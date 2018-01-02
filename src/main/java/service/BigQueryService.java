@@ -1,9 +1,8 @@
 package service;
 
-import com.google.appengine.repackaged.com.google.gson.Gson;
-import com.google.appengine.repackaged.com.google.gson.GsonBuilder;
-import com.google.appengine.repackaged.com.google.gson.JsonElement;
 import com.google.cloud.bigquery.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.threewks.thundr.logger.Logger;
 
 import java.util.List;
