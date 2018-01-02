@@ -2,43 +2,65 @@ package filters;
 
 import com.google.gson.Gson;
 import com.threewks.thundr.http.ContentType;
-import com.threewks.thundr.http.StatusCode;
 import com.threewks.thundr.logger.Logger;
 import com.threewks.thundr.request.Request;
 import com.threewks.thundr.request.Response;
-import com.threewks.thundr.route.HttpMethod;
 import com.threewks.thundr.route.controller.Filter;
 import com.threewks.thundr.view.json.JsonView;
 import org.apache.commons.lang3.RandomStringUtils;
+import service.BigQueryService;
 import servlet.MultiReadHttpServletRequest;
 
+import javax.servlet.ServletRequest;
 import java.io.IOException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 
 public class LoggingFilter implements Filter {
 
+    private static final String HEADER_USER_AGENT = "User-Agent";
+    private static final String HEADER_FORWARDED_FOR = "X-FORWARDED-FOR";
+
+    // Special useful headers provided by app engine
+    private static final String HEADER_APP_ENGINE_COUNTRY = "X-AppEngine-Country";
+    private static final String HEADER_APP_ENGINE_REGION = "X-AppEngine-Region";
+    private static final String HEADER_APP_ENGINE_CITY = "X-AppEngine-City";
+    private static final String HEADER_APP_ENGINE_CITY_LAT_LONG = "X-AppEngine-CityLatLong";
+
+    private static final String PROP_TRACE = "trace";
+    private static final String PROP_SERVER_TIME = "serverTime";
+
+
+    private final BigQueryService bigQueryService;
+
+    public LoggingFilter(BigQueryService bigQueryService) {
+        this.bigQueryService = bigQueryService;
+    }
 
     @Override
     public <T> T before(Request req, Response resp) {
         try {
 
             String trace = RandomStringUtils.randomAlphanumeric(16);
-            req.putData("trace", trace);
-            req.putData("serverTime", System.currentTimeMillis());
+            req.putData(PROP_TRACE, trace);
+            req.putData(PROP_SERVER_TIME, System.currentTimeMillis());
 
-            RequestDto requestDto = new RequestDto(
+            domain.Request request = new domain.Request(
                 trace,
                 req.getMethod(),
                 req.getContentType(),
                 req.getRequestPath(),
-                req.getHeader("X-FORWARDED-FOR"),
-                req.getHeader("User-Agent"),
+                getUserIpAddress(req),
+                req.getHeader(HEADER_USER_AGENT),
                 req.getContentLength(),
+                req.getHeader(HEADER_APP_ENGINE_COUNTRY),
+                req.getHeader(HEADER_APP_ENGINE_REGION),
+                req.getHeader(HEADER_APP_ENGINE_CITY),
+                req.getHeader(HEADER_APP_ENGINE_CITY_LAT_LONG),
                 getJson(req)
             );
 
-            Logger.info(requestDto.toString());
+            Logger.info(request.toString());
+
+            bigQueryService.insert(request);
 
         } catch (IOException e) {
 
@@ -49,17 +71,27 @@ public class LoggingFilter implements Filter {
         return null;
     }
 
+    private String getUserIpAddress(Request req) {
+        String remoteAddr = req.getHeader(HEADER_FORWARDED_FOR);
+        if (remoteAddr == null || "".equals(remoteAddr)) {
+            remoteAddr = req.getRawRequest(ServletRequest.class).getRemoteAddr();
+        }
+        return remoteAddr;
+    }
+
     @Override
     public <T> T after(Object view, Request req, Response resp) {
 
-        ResponseDto responseDto = new ResponseDto(
-            req.getData("trace"),
+        domain.Response response = new domain.Response(
+            req.getData(PROP_TRACE),
             resp.getStatusCode(),
-            System.currentTimeMillis() - (Long)req.getData("serverTime"),
+            System.currentTimeMillis() - (Long)req.getData(PROP_SERVER_TIME),
             getJson(view)
         );
 
-        Logger.info(responseDto.toString());
+        Logger.info(response.toString());
+
+        bigQueryService.insert(response);
 
         return null;
     }
@@ -67,7 +99,7 @@ public class LoggingFilter implements Filter {
     @Override
     public <T> T exception(Exception exception, Request req, Response resp) {
 
-        ResponseDto responseDto = new ResponseDto(
+        domain.Response responseDto = new domain.Response(
             req.getData("trace"),
             resp.getStatusCode(),
             System.currentTimeMillis() - (Long)req.getData("serverTime"),
@@ -100,97 +132,5 @@ public class LoggingFilter implements Filter {
         }
 
         return "";
-    }
-
-    private static class RequestDto {
-
-        private final String trace;
-        private final ZonedDateTime dateTime;
-        private final HttpMethod httpMethod;
-        private final ContentType contentType;
-        private final String contextPath;
-        private final String requesterIp;
-        private final String userAgent;
-        private final long contentLength;
-        private final String json;
-
-        public RequestDto(String trace, HttpMethod httpMethod, ContentType contentType, String contextPath, String requesterIp, String userAgent, long contentLength, String json) {
-            this.trace = trace;
-            this.httpMethod = httpMethod;
-            this.contentType = contentType;
-            this.contextPath = contextPath;
-            this.requesterIp = requesterIp;
-            this.userAgent = userAgent;
-            this.contentLength = contentLength;
-            this.json = json;
-            this.dateTime = ZonedDateTime.now(ZoneOffset.UTC);
-        }
-
-        @Override
-        public String toString() {
-
-            return "request: {" +
-                "trace='" + trace + '\'' +
-                ", date='" + dateTime + '\'' +
-                ", httpMethod='" + httpMethod + '\'' +
-                ", contextPath='" + contextPath + '\'' +
-                ", traceToken='" + trace + '\'' +
-                ", contentType='" + contentType + '\'' +
-                ", requesterIp='" + requesterIp + '\'' +
-                ", userAgent='" + userAgent + '\'' +
-                ", contentLength='" + contentLength + '\'' +
-                ", json='" + json + '\'' +
-                '}';
-        }
-    }
-
-    private static class ResponseDto {
-
-        private final String trace;
-        private final ZonedDateTime dateTime;
-        private final long duration;
-        private final StatusCode statusCode;
-        private final Exception exception;
-        private final String json;
-
-        public ResponseDto(String trace, StatusCode statusCode, long duration, Exception exception, String json) {
-            this.trace = trace;
-            this.statusCode = statusCode;
-            this.duration = duration;
-            this.exception = exception;
-            this.json = json;
-            this.dateTime = ZonedDateTime.now(ZoneOffset.UTC);
-        }
-
-        public ResponseDto(String trace, StatusCode statusCode, long duration, String json) {
-            this(trace, statusCode, duration, null, json);
-        }
-
-        public ResponseDto(String trace, StatusCode statusCode, long duration, Exception exception) {
-            this(trace, statusCode, duration, exception, null);
-        }
-
-        @Override
-        public String toString() {
-
-            if (exception != null) {
-                return "response: {" +
-                    "trace='" + trace + '\'' +
-                    ", date='" + dateTime + '\'' +
-                    ", statusCode='" + statusCode + '\'' +
-                    ", duration='" + duration + "ms\'" +
-                    ", exception='" + exception.getClass().getSimpleName() + '\'' +
-                    ", message='" + exception.getMessage() + '\'' +
-                    '}';
-            }
-
-            return "response: {" +
-                "trace='" + trace + '\'' +
-                ", date='" + dateTime + '\'' +
-                ", statusCode='" + statusCode + '\'' +
-                ", duration='" + duration + "ms\'" +
-                ", json='" + json + '\'' +
-                '}';
-        }
     }
 }
