@@ -21,9 +21,9 @@ public class Request {
     private final String userCityLatLong;
     private final String json;
 
-    public Request(String trace, HttpMethod httpMethod, ContentType contentType, String contextPath, String requesterIp, String userAgent, long contentLength, String userCountry, String userRegion, String userCity, String userCityLatLong, String json) {
+    public Request(String trace, Date dateTime, HttpMethod httpMethod, ContentType contentType, String contextPath, String requesterIp, String userAgent, long contentLength, String userCountry, String userRegion, String userCity, String userCityLatLong, String json) {
         this.trace = trace;
-        this.dateTime = new Date();
+        this.dateTime = dateTime;
         this.httpMethod = httpMethod;
         this.contentType = contentType;
         this.contextPath = contextPath;
@@ -35,6 +35,10 @@ public class Request {
         this.userCity = userCity;
         this.userCityLatLong = userCityLatLong;
         this.json = json;
+    }
+
+    public Request(String trace, HttpMethod httpMethod, ContentType contentType, String contextPath, String requesterIp, String userAgent, long contentLength, String userCountry, String userRegion, String userCity, String userCityLatLong, String json) {
+        this(trace, new Date(), httpMethod, contentType, contextPath, requesterIp, userAgent, contentLength, userCountry, userRegion, userCity, userCityLatLong, json);
     }
 
     @Override

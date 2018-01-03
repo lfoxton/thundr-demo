@@ -22,12 +22,6 @@
 
         <dependency>
             <groupId>com.threewks.thundr</groupId>
-            <artifactId>thundr-servlet-25</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.threewks.thundr</groupId>
             <artifactId>thundr-gae</artifactId>
             <version>3.0.0</version>
         </dependency>
@@ -43,6 +37,18 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigquery</artifactId>
             <version>0.32.0-beta</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-logging</artifactId>
+            <version>1.14.0</version>
         </dependency>
 
     </dependencies>
@@ -73,7 +79,7 @@
             <plugin>
                 <groupId>com.google.appengine</groupId>
                 <artifactId>appengine-maven-plugin</artifactId>
-                <version>1.9.59</version>
+                <version>1.9.60</version>
                 <configuration>
                     <enableJarClasses>false</enableJarClasses>
                     <port>8080</port>
