@@ -8,7 +8,7 @@ import com.threewks.thundr.request.Response;
 import com.threewks.thundr.route.controller.Filter;
 import com.threewks.thundr.view.json.JsonView;
 import org.apache.commons.lang3.RandomStringUtils;
-import service.BigQueryService;
+import service.LogService;
 import servlet.MultiReadHttpServletRequest;
 
 import javax.servlet.ServletRequest;
@@ -25,26 +25,22 @@ public class LoggingFilter implements Filter {
     private static final String HEADER_APP_ENGINE_CITY = "X-AppEngine-City";
     private static final String HEADER_APP_ENGINE_CITY_LAT_LONG = "X-AppEngine-CityLatLong";
 
-    private static final String PROP_TRACE = "trace";
     private static final String PROP_SERVER_TIME = "serverTime";
 
+    private final LogService logService;
 
-    private final BigQueryService bigQueryService;
-
-    public LoggingFilter(BigQueryService bigQueryService) {
-        this.bigQueryService = bigQueryService;
+    public LoggingFilter(LogService logService) {
+        this.logService = logService;
     }
 
     @Override
     public <T> T before(Request req, Response resp) {
         try {
 
-            String trace = RandomStringUtils.randomAlphanumeric(16);
-            req.putData(PROP_TRACE, trace);
             req.putData(PROP_SERVER_TIME, System.currentTimeMillis());
 
             domain.Request request = new domain.Request(
-                trace,
+                req.getId().toString(),
                 req.getMethod(),
                 req.getContentType(),
                 req.getRequestPath(),
@@ -60,7 +56,7 @@ public class LoggingFilter implements Filter {
 
             Logger.info(request.toString());
 
-            bigQueryService.insert(request);
+            logService.logRequest(request);
 
         } catch (IOException e) {
 
@@ -83,15 +79,15 @@ public class LoggingFilter implements Filter {
     public <T> T after(Object view, Request req, Response resp) {
 
         domain.Response response = new domain.Response(
-            req.getData(PROP_TRACE),
-            resp.getStatusCode(),
+            req.getId().toString(),
+            resp.getStatusCode().name(),
             System.currentTimeMillis() - (Long)req.getData(PROP_SERVER_TIME),
             getJson(view)
         );
 
         Logger.info(response.toString());
 
-        bigQueryService.insert(response);
+        logService.logResponse(response);
 
         return null;
     }
@@ -101,7 +97,7 @@ public class LoggingFilter implements Filter {
 
         domain.Response responseDto = new domain.Response(
             req.getData("trace"),
-            resp.getStatusCode(),
+            resp.getStatusCode().name(),
             System.currentTimeMillis() - (Long)req.getData("serverTime"),
             exception
         );
